@@ -9,7 +9,7 @@ function App() {
           <div className="navbar-nav">
             <Link className="nav-link" to="/clientes">Clientes</Link>
             <Link className="nav-link" to="/veiculos">Veículos</Link>
-            <Link className="nav-link" to="/Inspecoes">Inspeções</Link>            
+            <Link className="nav-link" to="/inspecoes">Inspeções</Link>            
           </div>
         </div>
       </nav>
