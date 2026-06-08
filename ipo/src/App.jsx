@@ -9,6 +9,7 @@ function App() {
           <div className="navbar-nav">
             <Link className="nav-link" to="/clientes">Clientes</Link>
             <Link className="nav-link" to="/veiculos">Veículos</Link>
+            <Link className="nav-link" to="/Inspecoes">Inspeções</Link>            
           </div>
         </div>
       </nav>
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<Inicio />} />
           <Route path="/clientes" element={<ClientesList />} />
           <Route path="/veiculos" element={<VeiculosList />} />
+          <Route path="/inspecoes" element={<InspecoesList />} />
         </Routes>
       </div>
     </div>
@@ -32,4 +34,9 @@ function ClientesList() {
 function VeiculosList() {
   return (<h2>Página de Veículos</h2>);
 }
+function InspecoesList() {
+  return (<h2>Página de Inspecoes</h2>);
+}
+
+
 export default App
