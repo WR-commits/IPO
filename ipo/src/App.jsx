@@ -9,82 +9,103 @@ function App() {
           <div className="navbar-nav">
             <Link className="nav-link" to="/clientes">Clientes</Link>
             <Link className="nav-link" to="/veiculos">Veículos</Link>
-            <Link className="nav-link" to="/inspecoes">Inspeções</Link>
+            <Link className="nav-link" to="/inspecoes">inspecoes</Link>
           </div>
         </div>
       </nav>
       <div className="container mt-4">
-
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/clientes" element={<ClientesList />} />
           <Route path="/veiculos" element={<VeiculosList />} />
           <Route path="/inspecoes" element={<InspecoesList />} />
         </Routes>
-
-        <div> 
-<button className="btn btn-dark"><i className="fa fa-plus"></i> Novo Cliente</button>
-<button className="btn btn-dark"><i className="fa-pencli"></i> Atualizar</button>
-        </div>
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">Codigo</th>
-              <th scope="col">Nome</th>
-              <th scope="col">Morada</th>
-              <th scope="col">Nif</th>
-              <th scope="col">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Luis</td>
-              <td>Lisboa</td>
-              <td>1234</td>
-              <td><button className="btn btn-dark"><i className="fa fa-eye"></i></button></td>
-              <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td> 
-              <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>                              
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Dias</td>
-              <td>porto</td>
-              <td>1241</td>
-              <td><button className="btn btn-dark"><i className="fa fa-eye"></i></button></td>
-              <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td>  
-              <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>                               
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>larry</td>
-              <td>braga</td>
-              <td>21321</td>
-              <td><button class="btn btn-dark"><i className="fa fa-eye"></i></button></td>
-              <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td>  
-              <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>                               
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   );
 }
 // Estas páginas serão criadas nas próximas etapas
 function Inicio() {
-  return (<h2>Bem-vindo ao sistema IPO</h2>);
-}
+  return (
+    <div class="jumbotron">
+      <h1 class="text-center">Centro de inspeções de automoveis</h1>
+      <p class="text-center">IPO - ESDS1</p>
 
+    </div>
+
+  );
+}
 function ClientesList() {
-  return (<h2>Página de Clientes</h2>);
+  return (
+    <div class="row g-3">
+      <div className="col-md-8">
+        <h2>Página de Clientes</h2>
+      </div>
+      <div className="col-md-4">
+        <button className="btn btn-secondary"><i className="fa fa-plus"></i> Novo Cliente</button>
+        <button className="btn btn-secondary"><i className="fa fa-refresh"></i> Atualizar Cliente</button>
+      </div>
+
+          
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Codigo</th>
+              <th>Nome</th>
+              <th>Morada</th>
+              <th>NIF</th>
+              <th>Funções</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <td><button className="btn btn-dark"><i className="fa fa-eye"></i></button></td>
+                <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td> 
+                <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>  
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <td><button className="btn btn-dark"><i className="fa fa-eye"></i></button></td>
+                <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td> 
+                <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>  
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td> </td>
+              <td></td>
+              <td>
+                <td><button className="btn btn-dark"><i className="fa fa-eye"></i></button></td>
+                <td><button className="btn btn-dark"><i className="fa fa-pencil"></i></button></td> 
+                <td><button className="btn btn-dark"><i className="fa fa-table"></i></button></td>  
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+
+
+
+    </div>
+
+
+  );
 }
 function VeiculosList() {
   return (<h2>Página de Veículos</h2>);
 }
 function InspecoesList() {
-  return (<h2>Página de Inspecoes</h2>);
+  return (<h2>Página de Inspeções</h2>);
 }
-
-
 export default App
