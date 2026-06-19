@@ -1,4 +1,4 @@
-import { useState, useEffect, } from 'react';
+import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, Link } from 'react-router-dom';
 
 const API_BASE = 'https://effective-capybara-v665669654wghp5gj-3000.app.github.dev';
@@ -13,7 +13,7 @@ function App() {
           <div className="navbar-nav">
             <Link className="nav-link" to="/clientes">Clientes</Link>
             <Link className="nav-link" to="/veiculos">Veículos</Link>
-            <Link className="nav-link" to="/inspecoes">inspeções</Link>
+            <Link className="nav-link" to="/inspecoes">inspecoes</Link>
           </div>
         </div>
       </nav>
@@ -33,38 +33,37 @@ function Inicio() {
   return (
     <div className="jumbotron">
       <h1 className="text-center">Centro de inspeções de automoveis</h1>
-      <p className="text-center">IPO - Waner</p>
+      <p className="text-center">IPO - ESDS1</p>
 
     </div>
 
   );
 }
 function ClientesList() {
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState(null);
   const navigate = useNavigate();
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(API_BASE + '/clientes/');
-        const data = await response.json();
-        if (data.success) {
-          setClientes(data.data);
-        } else {
-          setMensagemErro(data.message);
-        }
-      } catch {
-        setMensagemErro('Erro ao carregar clientes');
-      } finally {
-        setLoading(false);
-      }
-    };
+
     fetchData();
   }, []);
+
+  const openDeleteModal = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteId(null);
+    setShowDeleteModal(false);
+  };
+
   const confirmDelete = async (id) => {
     try {
-      const response = await fetch(API_BASE + '/clientes.php?id=' + id, { method: 'DELETE' });
+      const response = await fetch(API_BASE + '/clientes/' + id, { method: 'DELETE' });
       const data = await response.json();
       if (data.success) {
         fetchData();
@@ -73,8 +72,11 @@ function ClientesList() {
       }
     } catch {
       setMensagemErro('Erro ao eliminar cliente');
+    } finally {
+      closeDeleteModal();
     }
   };
+
   const fetchData = async () => {
     try {
       const response = await fetch(API_BASE + '/clientes');
@@ -130,14 +132,39 @@ function ClientesList() {
               <td style={{ whiteSpace: 'nowrap' }}>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-eye' aria-hidden='true'></i></button>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-pencil' aria-hidden='true'></i></button>
-                <button className="btn btn-dark btn-sm"
-                  onClick={() => confirmDelete(cliente.codcli)}> <i className='fa fa-trash' aria-hidden='true'></i>
+                <button className="btn btn-dark btn-sm" onClick={() => openDeleteModal(cliente.codcli)}>
+                  <i className='fa fa-trash' aria-hidden='true'></i>
                 </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {showDeleteModal && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+          <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1" role="dialog">
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Confirmação</h5>
+                  <button type="button" className="close" onClick={closeDeleteModal}>
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <p>Tem certeza que deseja eliminar este cliente?</p>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>Cancelar</button>
+                  <button type="button" className="btn btn-danger" onClick={() => confirmDelete(deleteId)}>Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
     </>
   );
 }
