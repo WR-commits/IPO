@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, Link } from 'react-router-dom';
 
-const API_BASE = 'https://effective-capybara-v665669654wghp5gj-3000.app.github.dev';
+const API_BASE = 'https://turbo-zebra-wrr4rrpr4wjrhg749-3000.app.github.dev';
 
 function App() {
   return (
@@ -21,8 +21,14 @@ function App() {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/clientes" element={<ClientesList />} />
+
+          {/* Rotas do formulário de Clientes */}
+          <Route path="/clientes/create" element={<ClienteForm modo="create" />} />
+          <Route path="/clientes/update/:id" element={<ClienteForm modo="update" />} />
+          <Route path="/clientes/read/:id" element={<ClienteForm modo="read" />} />
+
           <Route path="/veiculos" element={<VeiculosList />} />
-          <Route path="/inspecoes" element={<InspecoesList />} />
+          <Route path="/inspecoes/:matricula" element={<InspecoesList />} />
         </Routes>
       </div>
     </div>
@@ -100,7 +106,8 @@ function ClientesList() {
           <h2>Clientes</h2>
         </div>
         <div className="col-6 text-right">
-          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Novo Cliente</button>
+          <Link to="/clientes/create" className="btn btn-dark">
+            <i className="fa fa-plus-square"></i> Novo Cliente</Link>
           <button className="btn btn-light ml-3" onClick={fetchData}><i className="fa fa-refresh" aria-hidden="true"></i> Atualizar</button>
         </div>
       </div>
@@ -168,6 +175,73 @@ function ClientesList() {
     </>
   );
 }
+
+
+function ClienteForm() {
+  const [formData, setFormData] = useState({
+    nome: '',
+    morada: '',
+    nif: '',
+  });
+
+  const [mensagemErro, setMensagemErro] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const method = 'POST';
+      const url = `${API_BASE}/clientes`;
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (data.success) {
+        navigate('/clientes');
+      } else {
+        setMensagemErro(data.message);
+      }
+    } catch {
+      setMensagemErro('Erro ao guardar o cliente');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Novo Cliente</h1>
+      <form>
+        <div className="row g-3">
+          <div className="col-md-10">
+            <label>Nome:</label>
+            <input type="text" className="form-control md-8" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="row g-3">
+          <div className="col-md-6">
+            <label>Morada:</label>
+            <input type="varchar" className="form-control" value={formData.morada} onChange={(e) => setFormData({ ...formData, morada: e.target.value })} />
+
+          </div>
+          <div className="col-md-6">
+            <label>NIF:</label>
+            <input type="varchar" className="form-control" value={formData.nif} onChange={(e) => setFormData({ ...formData, nif: e.target.value })} />
+          </div>
+        </div>
+
+        <button type="button" className="btn btn-dark mt-3" onClick={handleSubmit}>Guardar</button>
+        <Link to="/clientes" className="btn btn-secondary">Cancelar</Link>
+
+      </form>
+    </div>
+  );
+  return (<div>xx</div>);
+}
+
+
+
 function VeiculosList() {
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -302,10 +376,9 @@ function VeiculosList() {
   );
 }
 function InspecoesList() {
-  return (<h2>Página de Inspeções</h2>);
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [veiculos, setVeiculos] = useState([]);
+  const [inspecoes, setInspecoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState(null);
   const navigate = useNavigate();
@@ -314,43 +387,18 @@ function InspecoesList() {
     fetchData();
   }, []);
 
-  const openDeleteModal = (id) => {
-    setDeleteId(id);
-    setShowDeleteModal(true);
-  };
-
-  const closeDeleteModal = () => {
-    setDeleteId(null);
-    setShowDeleteModal(false);
-  };
-
-  const confirmDelete = async (id) => {
-    try {
-      const response = await fetch(API_BASE + '/veiculos/' + id, { method: 'DELETE' });
-      const data = await response.json();
-      if (data.success) {
-        fetchData();
-      } else {
-        setMensagemErro(data.message);
-      }
-    } catch {
-      setMensagemErro('Erro ao eliminar veiculo');
-    } finally {
-      closeDeleteModal();
-    }
-  };
 
   const fetchData = async () => {
     try {
-      const response = await fetch(API_BASE + '/veiculos');
+      const response = await fetch(API_BASE + '/inspecoes');
       const data = await response.json();
       if (data.success) {
-        setVeiculos(data.data);
+        setInspecoes(data.data);
       } else {
         setMensagemErro(data.message);
       }
     } catch {
-      setMensagemErro('Erro ao carregar Veiculos');
+      setMensagemErro('Erro ao carregar inspecoes');
     } finally {
       setLoading(false);
     }
@@ -360,10 +408,10 @@ function InspecoesList() {
     <>
       <div className="row">
         <div className="col-6">
-          <h2>Veiculos</h2>
+          <h2>Inspeções</h2>
         </div>
         <div className="col-6 text-right">
-          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Novo Veiculo</button>
+          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Mais Inspecoes</button>
           <button className="btn btn-light ml-3" onClick={fetchData}><i className="fa fa-refresh" aria-hidden="true"></i> Atualizar</button>
         </div>
       </div>
@@ -381,24 +429,25 @@ function InspecoesList() {
             <th>Código</th>
             <th>Matrícula</th>
             <th>Data</th>
+            <th>Faltas</th>
             <th>Aprovado</th>
-            <th>Reprovovado</th>
-            <th>Opções</th>
+            <th>Inspector</th>
+            <th>Nome cliente</th>
           </tr>
         </thead>
         <tbody>
           {inspecoes.map(inspecoes => (
-            <tr key={inspecoes.codveiculo}>
-              <td>{inspecoes.codveiculo}</td>
+            <tr key={inspecoes.codinspecao}>
+              <td>{inspecoes.codinspecao}</td>
               <td>{inspecoes.codmatricula}</td>
-              <td>{inspecoes.datalivrete}</td>
-              <td>{inspecoes.anofabrico}</td>
+              <td>{inspecoes.datainspecao}</td>
+              <td>{inspecoes.numerofaltas}</td>
+              <td>{inspecoes.aprovado}</td>
               <td>{inspecoes.cliente.nome}</td>
-              <td>{inspecoes.marca.marca}</td>
               <td style={{ whiteSpace: 'nowrap' }}>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-eye' aria-hidden='true'></i></button>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-pencil' aria-hidden='true'></i></button>
-                <button className="btn btn-dark btn-sm" onClick={() => openDeleteModal(inspecoes.codveiculo)}>
+                <button className="btn btn-dark btn-sm">
                   <i className='fa fa-trash' aria-hidden='true'></i>
                 </button>
               </td>
@@ -419,7 +468,7 @@ function InspecoesList() {
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p>Tem certeza que deseja Aprovar esse relatorio?</p>
+                  <p>Tem certeza que deseja eliminar este inspecao?</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>Cancelar</button>
