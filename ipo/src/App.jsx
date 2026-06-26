@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { useNavigate, Routes, Route, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-const API_BASE = 'https://turbo-zebra-wrr4rrpr4wjrhg749-3000.app.github.dev';
+const API_BASE = 'https://obscure-doodle-97vxxqq5px3w47-3000.app.github.dev';
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
           <div className="navbar-nav">
             <Link className="nav-link" to="/clientes">Clientes</Link>
             <Link className="nav-link" to="/veiculos">Veículos</Link>
-            <Link className="nav-link" to="/inspecoes">inspecoes</Link>
+            <Link className="nav-link" to="/inspecoes">Inspeções</Link>
           </div>
         </div>
       </nav>
@@ -28,23 +29,26 @@ function App() {
           <Route path="/clientes/read/:id" element={<ClienteForm modo="read" />} />
 
           <Route path="/veiculos" element={<VeiculosList />} />
-          <Route path="/inspecoes/:matricula" element={<InspecoesList />} />
+
+          <Route path="/inspecoes" element={<InspecoesList />} />
         </Routes>
       </div>
     </div>
   );
 }
+
 // Estas páginas serão criadas nas próximas etapas
 function Inicio() {
   return (
-    <div className="jumbotron">
-      <h1 className="text-center">Centro de inspeções de automoveis</h1>
-      <p className="text-center">IPO - ESDS1</p>
-
+    <div>
+      <div className="jumbotron text-center">
+        <h1>Centro de Inspeções de Automóveis</h1>
+        <p>IPO - ESDS1</p>
+      </div>
     </div>
-
   );
 }
+
 function ClientesList() {
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -53,7 +57,6 @@ function ClientesList() {
   const [mensagemErro, setMensagemErro] = useState(null);
   const navigate = useNavigate();
   useEffect(() => {
-
     fetchData();
   }, []);
 
@@ -78,7 +81,8 @@ function ClientesList() {
       }
     } catch {
       setMensagemErro('Erro ao eliminar cliente');
-    } finally {
+    }
+    finally {
       closeDeleteModal();
     }
   };
@@ -107,7 +111,8 @@ function ClientesList() {
         </div>
         <div className="col-6 text-right">
           <Link to="/clientes/create" className="btn btn-dark">
-            <i className="fa fa-plus-square"></i> Novo Cliente</Link>
+            <i className="fa fa-plus-square"></i> Novo Cliente
+          </Link>
           <button className="btn btn-light ml-3" onClick={fetchData}><i className="fa fa-refresh" aria-hidden="true"></i> Atualizar</button>
         </div>
       </div>
@@ -137,8 +142,12 @@ function ClientesList() {
               <td>{cliente.morada}</td>
               <td>{cliente.nif}</td>
               <td style={{ whiteSpace: 'nowrap' }}>
-                <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-eye' aria-hidden='true'></i></button>
-                <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-pencil' aria-hidden='true'></i></button>
+                <button className="btn btn-dark btn-sm mr-2" onClick={() => navigate(`/clientes/read/${cliente.codcli}`)}>
+                  <i className='fa fa-eye' aria-hidden='true'></i>
+                </button>
+                <button className="btn btn-dark btn-sm mr-2" onClick={() => navigate(`/clientes/update/${cliente.codcli}`)}>
+                  <i className='fa fa-pencil' aria-hidden='true'></i>
+                </button>
                 <button className="btn btn-dark btn-sm" onClick={() => openDeleteModal(cliente.codcli)}>
                   <i className='fa fa-trash' aria-hidden='true'></i>
                 </button>
@@ -171,27 +180,44 @@ function ClientesList() {
           </div>
         </>
       )}
-
     </>
   );
 }
 
 
-function ClienteForm() {
-  const [formData, setFormData] = useState({
-    nome: '',
-    morada: '',
-    nif: '',
-  });
 
-  const [mensagemErro, setMensagemErro] = useState('');
+
+function ClienteForm({ modo }) {
+  const { id } = useParams();
   const navigate = useNavigate();
-
+  const [formData, setFormData] = useState({ nome: '', morada: '', nif: '' });
+  const [loading, setLoading] = useState(true);
+  const [mensagemErro, setMensagemErro] = useState(null);
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+  const fetchData = async () => {
+    try {
+      if (id) {
+        const response = await fetch(API_BASE + '/clientes/' + id);
+        const data = await response.json();
+        if (data.success) {
+          setFormData(data.data);
+        } else {
+          setMensagemErro(data.message);
+        }
+      }
+    } catch {
+      setMensagemErro('Erro ao carregar cliente');
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const method = 'POST';
-      const url = `${API_BASE}/clientes`;
+      const method = modo === 'update' ? 'PUT' : 'POST';
+      const url = modo === 'update' ? `${API_BASE}/clientes/${id}` : `${API_BASE}/clientes`;
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -199,7 +225,11 @@ function ClienteForm() {
       });
       const data = await response.json();
       if (data.success) {
-        navigate('/clientes');
+        if (modo === '/clientes/update' + id) {
+          navigate('/clientes/update/' + id);
+        } else {
+          navigate('/clientes');
+        }
       } else {
         setMensagemErro(data.message);
       }
@@ -207,38 +237,67 @@ function ClienteForm() {
       setMensagemErro('Erro ao guardar o cliente');
     }
   };
-
+  if (loading) return <p>Carregando...</p>;
+  let title;
+  if (modo === 'create') title = 'Novo Cliente';
+  else if (modo === 'update') title = 'Editar Cliente #' + id;
+  else title = 'Cliente #' + id;
   return (
-    <div>
-      <h1>Novo Cliente</h1>
-      <form>
-        <div className="row g-3">
-          <div className="col-md-10">
-            <label>Nome:</label>
-            <input type="text" className="form-control md-8" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
+    <form onSubmit={modo !== 'read' ? handleSubmit : undefined}>
+      <h2>{title}</h2>
+      {mensagemErro && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          {mensagemErro}
+          <button type="button" className="close" onClick={() => setMensagemErro('')} aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      )}
+      <div className="row">
+        <div className="col-sm-8">
+          <div className="form-group">
+            <label htmlFor="nome">Nome:</label>
+            <input type="text" className="form-control" value={formData.nome} onChange={(e) => setFormData({
+              ...formData, nome:
+                e.target.value
+            })} required readOnly={modo === 'read'} />
           </div>
         </div>
-
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label>Morada:</label>
-            <input type="varchar" className="form-control" value={formData.morada} onChange={(e) => setFormData({ ...formData, morada: e.target.value })} />
-
-          </div>
-          <div className="col-md-6">
-            <label>NIF:</label>
-            <input type="varchar" className="form-control" value={formData.nif} onChange={(e) => setFormData({ ...formData, nif: e.target.value })} />
+      </div>
+      <div className="row">
+        <div className="col-sm-6">
+          <div className="form-group">
+            <label htmlFor="morada">Morada</label>
+            <input type="text" className="form-control" value={formData.morada} onChange={(e) => setFormData({
+              ...formData, morada:
+                e.target.value
+            })} required readOnly={modo === 'read'} />
           </div>
         </div>
-
-        <button type="button" className="btn btn-dark mt-3" onClick={handleSubmit}>Guardar</button>
-        <Link to="/clientes" className="btn btn-secondary">Cancelar</Link>
-
-      </form>
-    </div>
+        <div className="col-sm-6">
+          <div className="form-group">
+            <label htmlFor="nif">NIF</label>
+            <input type="text" className="form-control" value={formData.nif} onChange={(e) => setFormData({
+              ...formData, nif:
+                e.target.value
+            })} required readOnly={modo === 'read'} />
+          </div>
+        </div>
+      </div>
+      {modo !== 'read' ? (
+        <>
+          <button type="submit" className="btn btn btn-dark mr-2">Guardar</button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate('/clientes')}>Cancelar</button>
+        </>
+      ) : (
+        <button type="button" className="btn btn-secondary" onClick={() => navigate('/clientes')}>Voltar</button>
+      )}
+    </form>
   );
-  return (<div>xx</div>);
 }
+
+
+
 
 
 
@@ -249,8 +308,8 @@ function VeiculosList() {
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState(null);
   const navigate = useNavigate();
-  useEffect(() => {
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -274,8 +333,9 @@ function VeiculosList() {
         setMensagemErro(data.message);
       }
     } catch {
-      setMensagemErro('Erro ao eliminar veiculo');
-    } finally {
+      setMensagemErro('Erro ao eliminar veículo');
+    }
+    finally {
       closeDeleteModal();
     }
   };
@@ -290,7 +350,7 @@ function VeiculosList() {
         setMensagemErro(data.message);
       }
     } catch {
-      setMensagemErro('Erro ao carregar Veiculos');
+      setMensagemErro('Erro ao carregar veículos');
     } finally {
       setLoading(false);
     }
@@ -300,10 +360,10 @@ function VeiculosList() {
     <>
       <div className="row">
         <div className="col-6">
-          <h2>Veiculos</h2>
+          <h2>Veículos</h2>
         </div>
         <div className="col-6 text-right">
-          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Novo Veiculo</button>
+          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Novo Veículo</button>
           <button className="btn btn-light ml-3" onClick={fetchData}><i className="fa fa-refresh" aria-hidden="true"></i> Atualizar</button>
         </div>
       </div>
@@ -318,28 +378,28 @@ function VeiculosList() {
       <table className="table table-striped">
         <thead>
           <tr>
-            <th>Código</th>
+            <th>Codigo Veiculo</th>
             <th>Matrícula</th>
             <th>Data Livrete</th>
-            <th>Ano farbrico</th>
-            <th>Nome do cliente</th>
+            <th>Ano Fabrico</th>
+            <th>Nome do Cliente</th>
             <th>Marca</th>
             <th>Opções</th>
           </tr>
         </thead>
         <tbody>
-          {veiculos.map(veiculos => (
-            <tr key={veiculos.codveiculo}>
-              <td>{veiculos.codveiculo}</td>
-              <td>{veiculos.codmatricula}</td>
-              <td>{veiculos.datalivrete}</td>
-              <td>{veiculos.anofabrico}</td>
-              <td>{veiculos.cliente.nome}</td>
-              <td>{veiculos.marca.marca}</td>
+          {veiculos.map(veiculo => (
+            <tr key={veiculo.codveiculo}>
+              <td>{veiculo.codveiculo}</td>
+              <td>{veiculo.codmatricula}</td>
+              <td>{veiculo.datalivrete}</td>
+              <td>{veiculo.anofabrico}</td>
+              <td>{veiculo.cliente.nome}</td>
+              <td>{veiculo.marca.marca}</td>
               <td style={{ whiteSpace: 'nowrap' }}>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-eye' aria-hidden='true'></i></button>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-pencil' aria-hidden='true'></i></button>
-                <button className="btn btn-dark btn-sm" onClick={() => openDeleteModal(veiculos.codveiculo)}>
+                <button className="btn btn-dark btn-sm" onClick={() => openDeleteModal(veiculo.codveiculo)}>
                   <i className='fa fa-trash' aria-hidden='true'></i>
                 </button>
               </td>
@@ -360,7 +420,7 @@ function VeiculosList() {
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p>Tem certeza que deseja eliminar este veiculo?</p>
+                  <p>Tem certeza que deseja eliminar este veículo?</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>Cancelar</button>
@@ -371,7 +431,6 @@ function VeiculosList() {
           </div>
         </>
       )}
-
     </>
   );
 }
@@ -382,11 +441,37 @@ function InspecoesList() {
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState(null);
   const navigate = useNavigate();
-  useEffect(() => {
 
+  useEffect(() => {
     fetchData();
   }, []);
 
+  const openDeleteModal = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteId(null);
+    setShowDeleteModal(false);
+  };
+
+  const confirmDelete = async (id) => {
+    try {
+      const response = await fetch(API_BASE + '/inspecoes/' + id, { method: 'DELETE' });
+      const data = await response.json();
+      if (data.success) {
+        fetchData();
+      } else {
+        setMensagemErro(data.message);
+      }
+    } catch {
+      setMensagemErro('Erro ao eliminar inspeção');
+    }
+    finally {
+      closeDeleteModal();
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -398,7 +483,7 @@ function InspecoesList() {
         setMensagemErro(data.message);
       }
     } catch {
-      setMensagemErro('Erro ao carregar inspecoes');
+      setMensagemErro('Erro ao carregar inspeções');
     } finally {
       setLoading(false);
     }
@@ -408,10 +493,10 @@ function InspecoesList() {
     <>
       <div className="row">
         <div className="col-6">
-          <h2>Inspeções</h2>
+          <h2>Página de Inspeções</h2>
         </div>
         <div className="col-6 text-right">
-          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Mais Inspecoes</button>
+          <button className="btn btn-dark ml-3" ><i className="fa fa-plus-square" aria-hidden="true"></i> Nova Inspeção</button>
           <button className="btn btn-light ml-3" onClick={fetchData}><i className="fa fa-refresh" aria-hidden="true"></i> Atualizar</button>
         </div>
       </div>
@@ -426,30 +511,31 @@ function InspecoesList() {
       <table className="table table-striped">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Matrícula</th>
-            <th>Data</th>
-            <th>Faltas</th>
+            <th>Codigo Inspeção</th>
+            <th>Código Cliente</th>
+            <th>Código Matrícula</th>
+            <th>Código Inspetor</th>
+            <th>Data Inspeção</th>
+            <th>Número Faltas</th>
+            <th>Descrição Faltas</th>
             <th>Aprovado</th>
-            <th>Inspector</th>
-            <th>Nome cliente</th>
+            <th>Opções</th>
           </tr>
         </thead>
         <tbody>
-          {inspecoes.map(inspecoes => (
-            <tr key={inspecoes.codinspecao}>
-              <td>{inspecoes.codinspecao}</td>
-              <td>{inspecoes.codmatricula}</td>
-              <td>{inspecoes.datainspecao}</td>
-              <td>{inspecoes.numerofaltas}</td>
-              <td>{inspecoes.aprovado}</td>
-              <td>{inspecoes.cliente.nome}</td>
+          {inspecoes.map(inspecao => (
+            <tr key={inspecao.codinspecao}>
+              <td>{inspecao.codinspecao}</td>
+              <td>{inspecao.codcli}</td>
+              <td>{inspecao.codmatricula}</td>
+              <td>{inspecao.codinspetor}</td>
+              <td>{inspecao.datainspecao}</td>
+              <td>{inspecao.numerofaltas}</td>
+              <td>{inspecao.descricaofaltas}</td>
+              <td>{inspecao.aprovado}</td>
               <td style={{ whiteSpace: 'nowrap' }}>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-eye' aria-hidden='true'></i></button>
                 <button className="btn btn-dark btn-sm mr-2" ><i className='fa fa-pencil' aria-hidden='true'></i></button>
-                <button className="btn btn-dark btn-sm">
-                  <i className='fa fa-trash' aria-hidden='true'></i>
-                </button>
               </td>
             </tr>
           ))}
@@ -468,7 +554,7 @@ function InspecoesList() {
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p>Tem certeza que deseja eliminar este inspecao?</p>
+                  <p>Tem certeza que deseja eliminar este veículo?</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>Cancelar</button>
@@ -479,8 +565,8 @@ function InspecoesList() {
           </div>
         </>
       )}
-
     </>
   );
 }
+
 export default App
